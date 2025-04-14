@@ -97,6 +97,8 @@ if choice == "Login":
                     df.reset_index(inplace=True, drop=True)
 
                     if b2:
+			st.session_state['reset'] = True
+			st.experimental_rerun()
                         if len(np.unique(tdata)) == 1:
                             if np.unique(tdata)[0] == 1:
                                 st.success("Please Contact Nearest Doctor")
