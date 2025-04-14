@@ -111,8 +111,6 @@ if choice == "Login":
                             st.success(query)
                             st.success(f"Probability: {score}")
                             st.success(df[df['Disease'] == query]["Precautions"].to_numpy()[0])
-			st.session_state['reset'] = True
-			st.experimental_rerun()
 
                         
 
