@@ -44,14 +44,6 @@ if choice=="Home":
         """
         ,unsafe_allow_html=True)
     
-
-import streamlit as st
-import re
-import bz2
-import pickle
-import pandas as pd
-import numpy as np
-
 if 'reset' not in st.session_state:
     st.session_state.reset = False
 
@@ -76,7 +68,7 @@ if choice == "Login":
                 result = login_user(Email, Password)
                 if result:
                     st.success(f"Logged In as {Email}")
-                    menu2 = ["K-Nearest Neighbors", "Decision Tree", "Random Forest", "Naive Bayes", "ExtraTreesClassifier"]
+                    menu2 = ["ExtraTreesClassifier"]
                     choice2 = st.selectbox("Select ML", menu2)
 
                     sfile1 = bz2.BZ2File('features.pkl', 'r')
@@ -131,18 +123,13 @@ if choice == "Login":
                             else:
                                 st.success("You are healthy")
                         else:
-                            index = menu2.index(choice2)
-                            test_prediction = model[index].predict([tdata])
+                            
+                            test_prediction = model[4].predict([tdata])
                             query = test_prediction[0]
-                            score = np.amax(model[index].predict_proba([tdata]))
+                            score = np.amax(model[4].predict_proba([tdata]))
                             st.success(query)
                             st.success(f"Probability: {score}")
                             st.success(df[df['Disease'] == query]["Precautions"].to_numpy()[0])
-
-
-
-                        
-
                 else:
                     st.warning("Incorrect Email/Password")
         else:
