@@ -44,99 +44,77 @@ if choice=="Home":
         """
         ,unsafe_allow_html=True)
     
-if choice=="Login":
+if choice == "Login":
     Email = st.sidebar.text_input("Email")
-    Password = st.sidebar.text_input("Password",type="password")
-    b1=st.sidebar.checkbox("Login")
+    Password = st.sidebar.text_input("Password", type="password")
+    b1 = st.sidebar.checkbox("Login")
+
     if b1:
         regex = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
         if re.fullmatch(regex, Email):
             create_usertable()
-            if Email=='a@a.com' and Password=='123':
-                st.success("Logged In as {}".format("Admin"))
-                Email=st.text_input("Delete Email")
+            if Email == 'a@a.com' and Password == '123':
+                st.success(f"Logged In as Admin")
+                Email = st.text_input("Delete Email")
                 if st.button('Delete'):
                     delete_user(Email)
                 user_result = view_all_users()
-                clean_db = pd.DataFrame(user_result,columns=["FirstName","LastName","Mobile","City","Email","password","Cpassword"])
+                clean_db = pd.DataFrame(user_result, columns=["FirstName", "LastName", "Mobile", "City", "Email", "password", "Cpassword"])
                 st.dataframe(clean_db)
             else:
-                result = login_user(Email,Password)
+                result = login_user(Email, Password)
                 if result:
-                    st.success("Logged In as {}".format(Email))
-                    menu2 = ["K-Nearest Neighbors", "Decision Tree", "Random Forest",
-                             "Naive Bayes","ExtraTreesClassifier"]
-                    choice2 = st.selectbox("Select ML",menu2)
+                    st.success(f"Logged In as {Email}")
+                    menu2 = ["K-Nearest Neighbors", "Decision Tree", "Random Forest", "Naive Bayes", "ExtraTreesClassifier"]
+                    choice2 = st.selectbox("Select ML", menu2)
+
                     sfile1 = bz2.BZ2File('features.pkl', 'r')
-                    selected_features=pickle.load(sfile1)
-                    choices=[]
-                    k=0
-                    for feature in selected_features:
-                        opt = ["False","True"]
-                        choice = st.selectbox(feature,opt)
-                        if choice=="True":
-                            choices.append(1)
-                        else:
-                            choices.append(0)
-                        k=k+1
-                    b2=st.button("Predict")
+                    selected_features = pickle.load(sfile1)
+
+                    choices = []
+                    for i, feature in enumerate(selected_features):
+                        key_name = f"feature_{i}"
+                        val = st.selectbox(feature, ["False", "True"], key=key_name)
+                        choices.append(1 if val == "True" else 0)
+
+                    b2 = st.button("Predict")
+
                     sfile = bz2.BZ2File('model.pkl', 'r')
-                    model=pickle.load(sfile)
-                    tdata=choices
-                    df=pd.read_csv("Disease precaution.csv")
+                    model = pickle.load(sfile)
+                    tdata = choices
+
+                    df = pd.read_csv("Disease precaution.csv")
                     df = df.applymap(lambda x: x.strip().lower() if isinstance(x, str) else x)
-                    diseases=['drug reaction','allergy','common cold', 'chickenpox', 
-                              'neonatal jaundice', 'pneumonia', 'infectious gastroenteritis']
-                    df["Disease"]=df["Disease"].str.replace("chicken pox","chickenpox")
-                    df["Disease"]=df["Disease"].str.replace("jaundice","neonatal jaundice")
-                    df["Disease"]=df["Disease"].str.replace("gastroenteritis","infectious gastroenteritis")
+                    diseases = ['drug reaction', 'allergy', 'common cold', 'chickenpox',
+                                'neonatal jaundice', 'pneumonia', 'infectious gastroenteritis']
+                    df["Disease"] = df["Disease"].str.replace("chicken pox", "chickenpox")
+                    df["Disease"] = df["Disease"].str.replace("jaundice", "neonatal jaundice")
+                    df["Disease"] = df["Disease"].str.replace("gastroenteritis", "infectious gastroenteritis")
                     df = df[df['Disease'].isin(diseases)]
                     df = df.fillna("")
                     df['Precautions'] = df[['Precaution_1', 'Precaution_2', 'Precaution_3', 'Precaution_4']].apply(lambda x: ', '.join(x), axis=1)
                     df.drop(columns=['Precaution_1', 'Precaution_2', 'Precaution_3', 'Precaution_4'], inplace=True)
-                    df.reset_index(inplace=True,drop=True)
-                    
-                    
+                    df.reset_index(inplace=True, drop=True)
+
                     if b2:
-                        if len(np.unique(tdata))==1:
-                            if np.unique(tdata)==1:
+                        if len(np.unique(tdata)) == 1:
+                            if np.unique(tdata)[0] == 1:
                                 st.success("Please Contact Nearest Doctor")
                             else:
                                 st.success("You are healthy")
                         else:
-                                
-                            if choice2=="K-Nearest Neighbors":
-                                test_prediction = model[0].predict([tdata])
-                                query=test_prediction[0]
-                                score=np.amax(model[0].predict_proba([tdata]))
-                                st.success(query)
-                                st.success("Probability: "+str(score))            
-                            if choice2=="Decision Tree":
-                                test_prediction = model[1].predict([tdata])
-                                query=test_prediction[0]
-                                score=np.amax(model[1].predict_proba([tdata]))
-                                st.success(query)
-                                st.success("Probability: "+str(score))
-                            if choice2=="Random Forest":
-                                test_prediction = model[2].predict([tdata])
-                                query=test_prediction[0]
-                                score=np.amax(model[2].predict_proba([tdata]))
-                                st.success(query)
-                                st.success("Probability: "+str(score))
-                            if choice2=="Naive Bayes":
-                                test_prediction = model[3].predict([tdata])
-                                query=test_prediction[0]
-                                score=np.amax(model[3].predict_proba([tdata]))
-                                st.success(query)
-                                st.success("Probability: "+str(score))
-                            if choice2=="ExtraTreesClassifier":
-                                test_prediction = model[4].predict([tdata])
-                                query=test_prediction[0]
-                                score=np.amax(model[4].predict_proba([tdata]))
-                                st.success(query)
-                                st.success("Probability: "+str(score))
-                            st.success(df[df['Disease']==query]["Precautions"].to_numpy()[0])
-                            
+                            index = menu2.index(choice2)
+                            test_prediction = model[index].predict([tdata])
+                            query = test_prediction[0]
+                            score = np.amax(model[index].predict_proba([tdata]))
+                            st.success(query)
+                            st.success(f"Probability: {score}")
+                            st.success(df[df['Disease'] == query]["Precautions"].to_numpy()[0])
+
+                        # Reset all selections after prediction
+                        for i in range(len(selected_features)):
+                            st.session_state[f"feature_{i}"] = "False"
+
                 else:
                     st.warning("Incorrect Email/Password")
         else:
