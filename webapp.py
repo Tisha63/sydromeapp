@@ -44,6 +44,17 @@ if choice=="Home":
         """
         ,unsafe_allow_html=True)
     
+
+import streamlit as st
+import re
+import bz2
+import pickle
+import pandas as pd
+import numpy as np
+
+if 'reset' not in st.session_state:
+    st.session_state.reset = False
+
 if choice == "Login":
     Email = st.sidebar.text_input("Email")
     Password = st.sidebar.text_input("Password", type="password")
@@ -71,17 +82,34 @@ if choice == "Login":
                     sfile1 = bz2.BZ2File('features.pkl', 'r')
                     selected_features = pickle.load(sfile1)
 
-                    choices = []
+                    # Initialize session state for storing the feature choices (default to "False")
+                    if 'choices' not in st.session_state:
+                        st.session_state.choices = ["False"] * len(selected_features)  # Default all to "False"
+
+                    # Loop through selected features and create selectboxes
                     for i, feature in enumerate(selected_features):
                         key_name = f"feature_{i}"
-                        val = st.selectbox(feature, ["False", "True"], key=key_name)
-                        choices.append(1 if val == "True" else 0)
+
+                        # If reset is triggered, set all choices to "False"
+                        if st.session_state.reset:
+                            st.session_state.choices[i] = "False"  # Reset to False
+
+                        # Ensure that choices are valid values ("False" or "True")
+                        val = st.selectbox(feature, ["False", "True"], key=key_name, index=["False", "True"].index(st.session_state.choices[i]))
+                        st.session_state.choices[i] = val  # Update the session state with the selected value
+
+                    
 
                     b2 = st.button("Predict")
+                    # Add reset button to reset all selections to False
+                    if st.button("Reset All Selections"):
+                        st.session_state.reset = True
+                    else:
+                        st.session_state.reset = False
 
                     sfile = bz2.BZ2File('model.pkl', 'r')
                     model = pickle.load(sfile)
-                    tdata = choices
+                    tdata = [1 if choice == "True" else 0 for choice in st.session_state.choices]
 
                     df = pd.read_csv("Disease precaution.csv")
                     df = df.applymap(lambda x: x.strip().lower() if isinstance(x, str) else x)
@@ -97,7 +125,6 @@ if choice == "Login":
                     df.reset_index(inplace=True, drop=True)
 
                     if b2:
-			
                         if len(np.unique(tdata)) == 1:
                             if np.unique(tdata)[0] == 1:
                                 st.success("Please Contact Nearest Doctor")
@@ -111,6 +138,8 @@ if choice == "Login":
                             st.success(query)
                             st.success(f"Probability: {score}")
                             st.success(df[df['Disease'] == query]["Precautions"].to_numpy()[0])
+
+
 
                         
 
