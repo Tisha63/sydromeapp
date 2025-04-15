@@ -68,7 +68,7 @@ if choice == "Login":
                 result = login_user(Email, Password)
                 if result:
                     st.success(f"Logged In as {Email}")
-                    menu2 = ["ExtraTreesClassifier"]
+                    menu2 = ["K-Nearest Neighbors","Decision Tree", "Random Forest","Naive Bayes","ExtraTreesClassifier"]
                     choice2 = st.selectbox("Select ML", menu2)
 
                     sfile1 = bz2.BZ2File('features.pkl', 'r')
@@ -123,7 +123,8 @@ if choice == "Login":
                             else:
                                 st.success("You are healthy")
                         else:
-                            
+                            index = ["K-Nearest Neighbors", "SVM", "Decision Tree", "Random Forest",
+                                     "Naive Bayes", "ExtraTreesClassifier", "VotingClassifier"].index(choice2)
                             test_prediction = model[4].predict([tdata])
                             query = test_prediction[0]
                             score = np.amax(model[4].predict_proba([tdata]))
